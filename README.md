@@ -1,73 +1,279 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# graphql-schema-first
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS GraphQL API built using the **schema-first** approach, integrated with Prisma ORM and PostgreSQL. The API covers four feature domains — **User**, **Auth**, **Post**, and **Category** — with JWT-based authentication and role-based access control.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Layer | Technology |
+|---|---|
+| Framework | [NestJS](https://nestjs.com/) v9 |
+| API | GraphQL (Schema-First) via `@nestjs/graphql` + Apollo Server v4 |
+| Database | PostgreSQL |
+| ORM | [Prisma](https://www.prisma.io/) v5 |
+| Auth | JWT (`@nestjs/jwt`) + bcrypt |
+| Real-time | GraphQL Subscriptions (`graphql-subscriptions`) |
+| Validation | `class-validator` + `class-transformer` |
+| Language | TypeScript |
 
-## Installation
+---
 
-```bash
-$ npm install
+## Project Structure
+
+```
+graphql-schema-first/
+├── prisma/
+│   ├── schema.prisma                   # Prisma data model
+│   └── migrations/                     # Migration history
+│       ├── 20240210160915_my_graphql/
+│       └── 20240215063153_mygraphql/
+│
+├── src/
+│   ├── app.module.ts                   # Root NestJS module
+│   ├── main.ts                         # Application entry point
+│   ├── generate-typings.ts             # Script: generate TS types from .graphql SDL
+│   ├── error.ts                        # Global error handling
+│   │
+│   ├── common/
+│   │   ├── date-scalar.ts              # Custom GraphQL Date scalar
+│   │   └── utils.ts                    # Shared utility functions
+│   │
+│   ├── database/
+│   │   ├── database.module.ts          # Prisma module registration
+│   │   └── prisma.service.ts           # PrismaClient service wrapper
+│   │
+│   ├── graphql/
+│   │   └── graphql.schema.ts           # Auto-generated GraphQL schema types
+│   │
+│   ├── object/
+│   │   ├── constant/index.ts           # App-wide constants
+│   │   ├── decorators/user.decorator.ts # @CurrentUser param decorator
+│   │   ├── enums/
+│   │   │   ├── log.enum.ts             # Log level enum
+│   │   │   └── user.permissions.enum.ts # User permission enum
+│   │   └── roles.decorator.ts          # @Roles metadata decorator
+│   │
+│   └── modules/
+│       ├── auth/                       # Authentication module
+│       │   ├── auth.graphql            # Auth SDL (login mutation, token type)
+│       │   ├── auth.guard.ts           # JWT AuthGuard
+│       │   ├── auth.module.ts
+│       │   ├── auth.resolver.ts
+│       │   ├── auth.service.ts
+│       │   └── dtos/auth-user.dto.ts
+│       │
+│       ├── user/                       # User CRUD module
+│       │   ├── user.graphql            # User SDL (queries, mutations, types)
+│       │   ├── user.module.ts
+│       │   ├── user.resolver.ts
+│       │   ├── user.service.ts
+│       │   └── dto/create-user.dto.ts
+│       │
+│       ├── post/                       # Post module
+│       │   ├── post.graphql
+│       │   ├── post.module.ts
+│       │   ├── post.resolver.ts
+│       │   ├── post.service.ts
+│       │   └── dto/create-post.dto.ts
+│       │
+│       └── category/                   # Category module
+│           ├── category.graphql
+│           ├── category.module.ts
+│           ├── category.resolver.ts
+│           ├── category.service.ts
+│           └── dto/create-category.dto.ts
+│
+├── test/
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+│
+├── query.script.txt                    # Sample GraphQL queries & mutations
+├── .env.example
+└── package.json
 ```
 
-## Running the app
+---
+
+## Prerequisites
+
+- Node.js >= 16
+- PostgreSQL running locally (or a remote connection string)
+- npm
+
+---
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/nguyenlyminhman/graphql-schema-first.git
+cd graphql-schema-first
 ```
 
-## Test
+### 2. Install dependencies
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Support
+### 3. Configure environment variables
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+cp .env.example .env
+```
 
-## Stay in touch
+Edit `.env` and set your PostgreSQL connection string:
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```env
+DATABASE_URL="postgresql://<user>:<password>@localhost:5432/<dbname>?schema=public"
+```
+
+### 4. Run database migrations
+
+```bash
+npm run db:migrate
+```
+
+Applies all pending Prisma migrations defined in `prisma/migrations/`.
+
+### 5. Generate GraphQL TypeScript typings
+
+```bash
+npm run generate:typing
+```
+
+Uses `ts-morph` to generate TypeScript types from the `.graphql` SDL files into `src/graphql/graphql.schema.ts`. Re-run this whenever you modify a `.graphql` file.
+
+---
+
+## Running the Application
+
+```bash
+# Development mode
+npm run start
+
+# Watch mode (auto-reload on file changes)
+npm run start:dev
+
+# Debug mode
+npm run start:debug
+
+# Production mode
+npm run start:prod
+```
+
+The GraphQL Playground / Apollo Sandbox is available at:
+
+```
+http://localhost:3000/graphql
+```
+
+---
+
+## Modules
+
+### Auth
+Handles login and JWT token issuance. Protected resolvers use `AuthGuard` which validates the Bearer token from the request header.
+
+### User
+CRUD operations for user accounts. Passwords are hashed with bcrypt before storage.
+
+### Post
+Create and query posts. Posts are associated with a user and a category.
+
+### Category
+Create and query categories used to organize posts.
+
+---
+
+## Example Queries & Mutations
+
+See the full list in [`query.script.txt`](./query.script.txt). Quick samples:
+
+**Create a user:**
+```graphql
+mutation createUser {
+  createUser(createUserInput: {
+    fullname: "John Doe"
+    email: "john@example.com"
+    password: "secret123"
+  }) {
+    id
+    fullname
+    email
+  }
+}
+```
+
+**Get a user by ID:**
+```graphql
+query user {
+  user(id: 1) {
+    id
+    email
+    fullname
+  }
+}
+```
+
+**Get all users:**
+```graphql
+query users {
+  users {
+    id
+    email
+    fullname
+  }
+}
+```
+
+---
+
+## Key Scripts
+
+| Script | Description |
+|---|---|
+| `npm run start:dev` | Start in watch/dev mode |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run generate:typing` | Regenerate TS types from `.graphql` SDL files |
+| `npm run db:migrate` | Apply Prisma migrations |
+| `npm run lint` | Run ESLint with auto-fix |
+| `npm run format` | Run Prettier formatter |
+
+---
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:cov
+
+# End-to-end tests
+npm run test:e2e
+```
+
+---
+
+## Schema-First Approach
+
+This project uses the **schema-first** method:
+
+1. The GraphQL schema is defined in `.graphql` SDL files inside each feature module (e.g. `user.graphql`, `post.graphql`).
+2. NestJS reads these files at runtime via the `typePaths` option in `GraphQLModule.forRoot()`.
+3. TypeScript types matching the schema are generated via `npm run generate:typing` and written to `src/graphql/graphql.schema.ts`.
+
+This keeps the GraphQL contract explicit and decoupled from the TypeScript implementation, unlike the code-first approach where decorators drive schema generation.
+
+---
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is UNLICENSED (private use).
